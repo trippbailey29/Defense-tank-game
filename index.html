@@ -6,11 +6,10 @@
 <title>Tank Defense Game</title>
 <style>
   html, body {
-    margin: 0; padding: 0;
-    overflow: hidden;
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
     background: #111;
-    font-family: Arial, sans-serif;
     color: white;
+    font-family: Arial, sans-serif;
     user-select: none;
   }
   #container {
@@ -25,8 +24,8 @@
   }
   canvas {
     display: block;
-    background: #222;
     margin: 0 auto;
+    background: #222;
   }
   #uiPanel {
     width: 280px;
@@ -111,6 +110,7 @@
       <canvas id="gameCanvas" width="800" height="600"></canvas>
       <div id="startScreen">
         <h1>Tank Defense</h1>
+        <p>Press the Play button or press SPACEBAR to start</p>
         <button id="startBtn">Play</button>
       </div>
       <div id="gameOverScreen" style="display:none;">
@@ -131,6 +131,7 @@
       <button class="upgradeBtn" id="upgradeHealBtn" title="Cost: 20">3️⃣ Heal Player (+30 HP)</button>
     </div>
   </div>
+
 <script>
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
@@ -156,12 +157,19 @@
   let waveInProgress = false;
   let upgrades;
 
-  // Listen for keys
+  // Key event handlers
   window.addEventListener("keydown", e => {
     keys[e.key.toLowerCase()] = true;
     if(e.key === " ") keys["space"] = true;
 
+    // If game is not running, spacebar or enter starts game
+    if(!gameRunning && (e.key === " " || e.key.toLowerCase() === "enter")){
+      startGame();
+    }
+
     if(!gameRunning) return;
+
+    // Buy upgrades by pressing 1,2,3 keys
     if(e.key === "1") buyUpgrade("shoot");
     else if(e.key === "2") buyUpgrade("speed");
     else if(e.key === "3") buyUpgrade("heal");
@@ -180,7 +188,6 @@
   upgradeHealBtn.addEventListener("click", () => buyUpgrade("heal"));
 
   function startGame() {
-    // Initialize game state
     player = {
       x: canvas.width/2,
       y: canvas.height - 80,
@@ -301,19 +308,23 @@
     waveInProgress = true;
   }
 
-  function rectCircleColliding(circle, rect) {
-    let distX = Math.abs(circle.x - rect.x - rect.width/2);
-    let distY = Math.abs(circle.y - rect.y - rect.height/2);
-
-    if(distX > (rect.width/2 + circle.radius)) return false;
-    if(distY > (rect.height/2 + circle.radius)) return false;
-
-    if(distX <= (rect.width/2)) return true;
-    if(distY <= (rect.height/2)) return true;
-
-    let dx = distX - rect.width/2;
-    let dy = distY - rect.height/2;
-    return (dx*dx + dy*dy <= circle.radius*circle.radius);
+  function circleRectCollision(cx, cy, radius, rx, ry, rw, rh) {
+    let closestX = Math.max(rx, Math.min(cx, rx + rw));
+    let closestY = Math.max(ry, Math.min(cy, ry + rh));
+    let dx = cx - closestX;
+    let dy = cy - closestY;
+    return (dx*dx + dy*dy) < (radius*radius);
   }
 
-  // Circle collision helper between
+  function circleCircleCollision(c1, c2) {
+    let dx = c1.x - c2.x;
+    let dy = c1.y - c2.y;
+    let distance = Math.sqrt(dx*dx + dy*dy);
+    return distance < (c1.size/2 + c2.size/2);
+  }
+
+  function gameLoop(timestamp){
+    if(!gameRunning) return;
+
+    // Clear screen
+    ctx.clearRect
