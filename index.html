@@ -1,165 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Tank Defense with Waves & Upgrades</title>
-  <style>
-    body {
-      margin: 0;
-      background: #1a1a1a;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
-      user-select: none;
-    }
-    #container {
-      display: flex;
-      height: 100vh;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tank Defense with Waves & Upgrades</title>
+<style>
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+  #container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+  }
+  #gameArea {
+    flex: 1;
+    background: #202020;
+    position: relative;
+  }
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: #202020;
+  }
+  #uiPanel {
+    width: 300px;
+    background: #111;
+    color: white;
+    padding: 20px;
+    box-sizing: border-box;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-left: 2px solid #333;
+  }
+  #uiPanel h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  #uiPanel p {
+    margin: 6px 0;
+  }
+  button.upgradeBtn {
+    background: #3b82f6;
+    border: none;
+    color: white;
+    font-size: 16px;
+    margin: 8px 0;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+  }
+  button.upgradeBtn:disabled {
+    background: #555;
+    cursor: not-allowed;
+  }
+  #startScreen, #gameOverScreen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #222;
+    padding: 30px 50px;
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+    z-index: 10;
+    user-select: none;
+  }
+  #startScreen button, #gameOverScreen button {
+    margin-top: 20px;
+    font-size: 18px;
+    padding: 12px 30px;
+    background: #3b82f6;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  @media (max-width: 600px) {
+    #uiPanel {
       width: 100vw;
+      height: 200px;
+      border-left: none;
+      border-top: 2px solid #333;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      font-size: 14px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 20;
     }
     #gameArea {
-      flex: 1;
-      background: #202020;
-      position: relative;
-    }
-    canvas {
-      display: block;
-      margin: 0 auto;
-      background: #202020;
-    }
-    #uiPanel {
-      width: 300px;
-      background: #111;
-      color: white;
-      padding: 20px;
-      box-sizing: border-box;
-      font-size: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      border-left: 2px solid #333;
-    }
-    #uiPanel h2 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    #uiPanel p {
-      margin: 6px 0;
+      height: calc(100vh - 200px);
     }
     button.upgradeBtn {
-      background: #3b82f6;
-      border: none;
-      color: white;
-      font-size: 16px;
-      margin: 8px 0;
-      padding: 12px;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background 0.3s ease;
+      flex: 1 1 30%;
+      margin: 6px;
+      padding: 10px;
+      font-size: 14px;
     }
-    button.upgradeBtn:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
-    #startScreen, #gameOverScreen {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #222;
-      padding: 30px 50px;
-      border-radius: 10px;
-      color: white;
-      text-align: center;
-      z-index: 10;
-      user-select: none;
-    }
-    #startScreen button, #gameOverScreen button {
-      margin-top: 20px;
-      font-size: 18px;
-      padding: 12px 30px;
-      background: #3b82f6;
-      border: none;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    @media (max-width: 600px) {
-      #uiPanel {
-        width: 100vw;
-        height: 200px;
-        border-left: none;
-        border-top: 2px solid #333;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        font-size: 14px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        z-index: 20;
-      }
-      #gameArea {
-        height: calc(100vh - 200px);
-      }
-      button.upgradeBtn {
-        flex: 1 1 30%;
-        margin: 6px;
-        padding: 10px;
-        font-size: 14px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <div id="container">
-    <div id="gameArea">
-      <canvas id="gameCanvas" width="800" height="600"></canvas>
-      <div id="startScreen">
-        <h1>Tank Defense</h1>
-        <button id="startBtn">Play</button>
-      </div>
-      <div id="gameOverScreen" style="display:none;">
-        <h2>Game Over</h2>
-        <p id="finalScoreText"></p>
-        <button id="restartBtn">Restart</button>
-      </div>
+<div id="container">
+  <div id="gameArea">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="startScreen">
+      <h1>Tank Defense</h1>
+      <button id="startBtn">Play</button>
     </div>
-    <div id="uiPanel" style="display:none;">
-      <h2>Status</h2>
-      <p>Wave: <span id="waveNumber">1</span></p>
-      <p>Base HP: <span id="baseHp">100</span></p>
-      <p>Player HP: <span id="playerHp">100</span></p>
-      <p>Score: <span id="score">0</span></p>
-      <h2>Upgrades</h2>
-      <button class="upgradeBtn" id="upgradeShootBtn" title="Cost: 10">1️⃣ Faster Shooting (Cooldown -0.05s)</button>
-      <button class="upgradeBtn" id="upgradeSpeedBtn" title="Cost: 15">2️⃣ Move Speed (+0.5)</button>
-      <button class="upgradeBtn" id="upgradeHealBtn" title="Cost: 20">3️⃣ Heal Player (+30 HP)</button>
+    <div id="gameOverScreen" style="display:none;">
+      <h2>Game Over</h2>
+      <p id="finalScoreText"></p>
+      <button id="restartBtn">Restart</button>
     </div>
   </div>
+  <div id="uiPanel" style="display:none;">
+    <h2>Status</h2>
+    <p>Wave: <span id="waveNumber">1</span></p>
+    <p>Base HP: <span id="baseHp">100</span></p>
+    <p>Player HP: <span id="playerHp">100</span></p>
+    <p>Score: <span id="score">0</span></p>
+    <h2>Upgrades</h2>
+    <button class="upgradeBtn" id="upgradeShootBtn" title="Cost: 10">1️⃣ Faster Shooting (Cooldown -50ms)</button>
+    <button class="upgradeBtn" id="upgradeSpeedBtn" title="Cost: 15">2️⃣ Move Speed (+0.5)</button>
+    <button class="upgradeBtn" id="upgradeHealBtn" title="Cost: 20">3️⃣ Heal Player (+30 HP)</button>
+  </div>
+</div>
+<script>
+  // Setup
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
 
-  <script>
-    // Game variables
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+  // UI
+  const startScreen = document.getElementById("startScreen");
+  const gameOverScreen = document.getElementById("gameOverScreen");
+  const finalScoreText = document.getElementById("finalScoreText");
+  const uiPanel = document.getElementById("uiPanel");
 
-    // UI elements
-    const startScreen = document.getElementById("startScreen");
-    const gameOverScreen = document.getElementById("gameOverScreen");
-    const finalScoreText = document.getElementById("finalScoreText");
-    const uiPanel = document.getElementById("uiPanel");
+  const waveNumberEl = document.getElementById("waveNumber");
+  const baseHpEl = document.getElementById("baseHp");
+  const playerHpEl = document.getElementById("playerHp");
+  const scoreEl = document.getElementById("score");
 
-    const waveNumberEl = document.getElementById("waveNumber");
-    const baseHpEl = document.getElementById("baseHp");
-    const playerHpEl = document.getElementById("playerHp");
-    const scoreEl = document.getElementById("score");
+  const upgradeShootBtn = document.getElementById("upgradeShootBtn");
+  const upgradeSpeedBtn = document.getElementById("upgradeSpeedBtn");
+  const upgradeHealBtn = document.getElementById("upgradeHealBtn");
 
-    const upgradeShootBtn = document.getElementById("upgradeShootBtn");
-    const upgradeSpeedBtn = document.getElementById("upgradeSpeedBtn");
-    const upgradeHealBtn = document.getElementById("upgradeHealBtn");
+  // Game state
+  let player, base, bullets, enemies;
+  let keys = {};
+  let mouse = { x: 400, y: 300 };
+  let score, wave, enemiesToSpawn, enemiesSpawned, spawnInterval, lastSpawnTime;
+  let gameRunning = false;
+  let waveInProgress = false;
 
-    // Player object
-    let player = {
+  // Upgrades
+  let upgrades;
+
+  // Event listeners
+  document.addEventListener("keydown", (e) => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key === " ") keys["space"] = true;
+    if (!gameRunning) return;
+
+    // Upgrade hotkeys
+    if (e.key === "1") buyUpgrade("shoot");
+    if (e.key === "2") buyUpgrade("speed");
+    if (e.key === "3") buyUpgrade("heal");
+  });
+
+  document.addEventListener("keyup", (e) => {
+    keys[e.key.toLowerCase()] = false;
+    if (e.key === " ") keys["space"] = false;
+  });
+
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+
+  document.getElementById("startBtn").onclick = startGame;
+  document.getElementById("restartBtn").onclick = startGame;
+
+  upgradeShootBtn.onclick = () => buyUpgrade("shoot");
+  upgradeSpeedBtn.onclick = () => buyUpgrade("speed");
+  upgradeHealBtn.onclick = () => buyUpgrade("heal");
+
+  // Initialize / reset game
+  function startGame() {
+    player = {
       x: 400,
       y: 500,
       size: 30,
@@ -168,182 +210,136 @@
       speed: 4,
       hp: 100,
       lastShot: 0,
-      shootCooldown: 300 // ms
+      shootCooldown: 300,
     };
-
-    // Base object
-    let base = {
+    base = {
       x: 400,
       y: 300,
       hp: 100,
       width: 60,
-      height: 60
+      height: 60,
+      maxHp: 100
     };
-
-    let bullets = [];
-    let enemies = [];
-
-    let keys = {};
-
-    let mouse = { x: 400, y: 300 };
-
-    // Game state
-    let score = 0;
-    let wave = 1;
-    let enemiesToSpawn = 5;
-    let enemiesSpawned = 0;
-    let spawnInterval = 1500; // ms
-    let lastSpawnTime = 0;
-    let gameRunning = false;
-    let waveInProgress = false;
-
-    // Upgrades
-    let upgrades = {
+    bullets = [];
+    enemies = [];
+    score = 0;
+    wave = 1;
+    enemiesToSpawn = 5;
+    enemiesSpawned = 0;
+    spawnInterval = 1500;
+    lastSpawnTime = 0;
+    gameRunning = true;
+    waveInProgress = false;
+    upgrades = {
       shootCooldown: 300,
       speed: 4,
     };
+    updateUI();
+    startScreen.style.display = "none";
+    gameOverScreen.style.display = "none";
+    uiPanel.style.display = "flex";
 
-    // Event Listeners
-    document.addEventListener("keydown", e => {
-      keys[e.key.toLowerCase()] = true;
-      if (e.key === " ") keys["space"] = true;
-      if (!gameRunning) return;
+    requestAnimationFrame(gameLoop);
+  }
 
-      // Also allow upgrade keys
-      if (e.key === "1") buyUpgrade("shoot");
-      if (e.key === "2") buyUpgrade("speed");
-      if (e.key === "3") buyUpgrade("heal");
-    });
-
-    document.addEventListener("keyup", e => {
-      keys[e.key.toLowerCase()] = false;
-      if (e.key === " ") keys["space"] = false;
-    });
-
-    canvas.addEventListener("mousemove", e => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
-    });
-
-    // Start / Restart buttons
-    document.getElementById("startBtn").onclick = startGame;
-    document.getElementById("restartBtn").onclick = startGame;
-
-    // Upgrade button clicks
-    upgradeShootBtn.onclick = () => buyUpgrade("shoot");
-    upgradeSpeedBtn.onclick = () => buyUpgrade("speed");
-    upgradeHealBtn.onclick = () => buyUpgrade("heal");
-
-    function startGame() {
-      // Reset all game state
-      player = {
-        x: 400,
-        y: 500,
-        size: 30,
-        angle: 0,
-        color: "#3b82f6",
-        speed: 4,
-        hp: 100,
-        lastShot: 0,
-        shootCooldown: 300
-      };
-      base = {
-        x: 400,
-        y: 300,
-        hp: 100,
-        width: 60,
-        height: 60
-      };
-      bullets = [];
-      enemies = [];
-      score = 0;
-      wave = 1;
-      enemiesToSpawn = 5;
-      enemiesSpawned = 0;
-      spawnInterval = 1500;
-      lastSpawnTime = 0;
-      gameRunning = true;
-      waveInProgress = false;
-      updateUI();
-      startScreen.style.display = "none";
-      gameOverScreen.style.display = "none";
-      uiPanel.style.display = "flex";
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    function buyUpgrade(type) {
-      if (!gameRunning) return;
-      if (type === "shoot") {
-        if (score >= 10 && upgrades.shootCooldown > 100) {
-          score -= 10;
-          upgrades.shootCooldown -= 50;
-          player.shootCooldown = upgrades.shootCooldown;
-        }
-      } else if (type === "speed") {
-        if (score >= 15 && upgrades.speed < 8) {
-          score -= 15;
-          upgrades.speed += 0.5;
-          player.speed = upgrades.speed;
-        }
-      } else if (type === "heal") {
-        if (score >= 20 && player.hp < 100) {
-          score -= 20;
-          player.hp += 30;
-          if (player.hp > 100) player.hp = 100;
-        }
+  function buyUpgrade(type) {
+    if (!gameRunning) return;
+    if (type === "shoot") {
+      if (score >= 10 && upgrades.shootCooldown > 100) {
+        score -= 10;
+        upgrades.shootCooldown -= 50;
+        player.shootCooldown = upgrades.shootCooldown;
       }
-      updateUI();
+    } else if (type === "speed") {
+      if (score >= 15 && upgrades.speed < 8) {
+        score -= 15;
+        upgrades.speed += 0.5;
+        player.speed = upgrades.speed;
+      }
+    } else if (type === "heal") {
+      if (score >= 20 && player.hp < 100) {
+        score -= 20;
+        player.hp += 30;
+        if (player.hp > 100) player.hp = 100;
+      }
+    }
+    updateUI();
+  }
+
+  function updateUI() {
+    waveNumberEl.textContent = wave;
+    baseHpEl.textContent = base.hp;
+    playerHpEl.textContent = player.hp;
+    scoreEl.textContent = score;
+
+    upgradeShootBtn.disabled = score < 10 || upgrades.shootCooldown <= 100;
+    upgradeSpeedBtn.disabled = score < 15 || upgrades.speed >= 8;
+    upgradeHealBtn.disabled = score < 20 || player.hp >= 100;
+  }
+
+  function spawnEnemy() {
+    if (enemiesSpawned >= enemiesToSpawn) return;
+    enemiesSpawned++;
+    const edge = Math.floor(Math.random() * 4);
+    let x, y;
+    if (edge === 0) { x = Math.random() * canvas.width; y = -20; }
+    else if (edge === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; }
+    else if (edge === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; }
+    else { x = -20; y = Math.random() * canvas.height; }
+    enemies.push({ x, y, hp: 50, speed: 1 + wave * 0.1, alive: true });
+  }
+
+  function nextWave() {
+    wave++;
+    enemiesToSpawn = 5 + wave * 2;
+    enemiesSpawned = 0;
+    spawnInterval = Math.max(500, 1500 - wave * 100);
+    waveInProgress = true;
+  }
+
+  function rectCircleColliding(circle, rect) {
+    // circle: {x,y,radius}
+    // rect: {x,y,width,height}
+    let distX = Math.abs(circle.x - rect.x - rect.width / 2);
+    let distY = Math.abs(circle.y - rect.y - rect.height / 2);
+
+    if (distX > (rect.width / 2 + circle.radius)) { return false; }
+    if (distY > (rect.height / 2 + circle.radius)) { return false; }
+
+    if (distX <= (rect.width / 2)) { return true; }
+    if (distY <= (rect.height / 2)) { return true; }
+
+    let dx = distX - rect.width / 2;
+    let dy = distY - rect.height / 2;
+    return (dx * dx + dy * dy <= (circle.radius * circle.radius));
+  }
+
+  // Game loop
+  function gameLoop(timestamp) {
+    if (!gameRunning) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Spawn enemies on timer
+    if (waveInProgress && enemiesSpawned < enemiesToSpawn && timestamp - lastSpawnTime > spawnInterval) {
+      spawnEnemy();
+      lastSpawnTime = timestamp;
     }
 
-    function spawnEnemy() {
-      if (enemiesSpawned >= enemiesToSpawn) return;
-      enemiesSpawned++;
-      const edge = Math.floor(Math.random() * 4);
-      let x, y;
-      if (edge === 0) { x = Math.random() * canvas.width; y = -20; }
-      else if (edge === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; }
-      else if (edge === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; }
-      else { x = -20; y = Math.random() * canvas.height; }
-      enemies.push({ x, y, hp: 50, speed: 1 + wave * 0.1, alive: true });
+    // If wave finished spawning and no enemies left, start next wave after delay
+    if (waveInProgress && enemiesSpawned >= enemiesToSpawn && enemies.length === 0) {
+      waveInProgress = false;
+      setTimeout(() => {
+        nextWave();
+      }, 2000);
     }
 
-    function nextWave() {
-      wave++;
-      enemiesToSpawn = 5 + wave * 2;
-      enemiesSpawned = 0;
-      spawnInterval = Math.max(500, 1500 - wave * 100);
-      waveInProgress = true;
-    }
+    // Player movement
+    const moveUp = keys["w"] || keys["arrowup"];
+    const moveDown = keys["s"] || keys["arrowdown"];
+    const moveLeft = keys["a"] || keys["arrowleft"];
+    const moveRight = keys["d"] || keys["arrowright"];
 
-    function gameLoop(timestamp) {
-      if (!gameRunning) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Move player
-      const moveUp = keys["w"] || keys["arrowup"];
-      const moveDown = keys["s"] || keys["arrowdown"];
-      const moveLeft = keys["a"] || keys["arrowleft"];
-      const moveRight = keys["d"] || keys["arrowright"];
-
-      if (moveUp) player.y -= player.speed;
-      if (moveDown) player.y += player.speed;
-      if (moveLeft) player.x -= player.speed;
-      if (moveRight) player.x += player.speed;
-
-      // Clamp player inside canvas
-      player.x = Math.min(Math.max(player.size / 2, player.x), canvas.width - player.size / 2);
-      player.y = Math.min(Math.max(player.size / 2, player.y), canvas.height - player.size / 2);
-
-      // Face mouse pointer
-      player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-
-      // Shoot bullets
-      if (keys["space"]) {
-        if (timestamp - player.lastShot > player.shootCooldown) {
-          bullets.push({
-            x: player.x + Math.cos(player.angle) * player.size / 2,
-            y: player.y + Math.sin(player.angle) * player.size / 2,
-            angle
+    if (moveUp) player.y -= player.speed;
+    if (moveDown) player.y += player.speed;
+    if (moveLeft)
